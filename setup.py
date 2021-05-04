@@ -3,8 +3,11 @@
 # TORCH_CUDA_ARCH_LIST
 #   specify which CUDA architectures to build for
 #
-# IGNORE_TORCH_VER
+# IGNORE_TORCH_VERSION
 #   ignore version requirements for PyTorch
+#
+# TORCH_VERSION
+#   require and install a specific version of PyTorch 
 
 from os import environ
 from setuptools import setup, find_packages, dist
@@ -16,13 +19,32 @@ TORCH_MIN_VER = '1.5.0'
 TORCH_MAX_VER = '1.7.1'
 CYTHON_MIN_VER = '0.29.20'
 INCLUDE_EXPERIMENTAL = environ.get('KAOLIN_INSTALL_EXPERIMENTAL') is not None
-IGNORE_TORCH_VER = environ.get('IGNORE_TORCH_VER') is not None
+IGNORE_TORCH_VERSION = environ.get('IGNORE_TORCH_VERSION') is not None
+TARGET_TORCH_VERSION = environ.get('TORCH_VERSION')
+CURRENT_TORCH_VERSION = importlib.util.find_spec("torch")
+
+def torch_ver_in_range(ver):
+    return parse_version(TORCH_MAX_VER) <= parse_version(ver) <= parse_version(TORCH_MAX_VER)
+
+def get_torch_version():
+    # Case 1: No env vars set or TORCH_VERSION in range
+    if (TARGET_TORCH_VERSION is None and not IGNORE_TORCH_VERSION) or (TARGET_TORCH_VERSION is not None and torch_ver_in_range(TORCH_VERSION)):
+        return f'torch>={TORCH_MIN_VER},<={TORCH_MAX_VER}'
+    elif (TORCH_VERSION is None and IGNORE_TORCH_VER)
+    "1": 
+}
 
 missing_modules = []
-torch_spec = importlib.util.find_spec("torch")
-if torch_spec is None:
+if CURRENT_TORCH_VERSION is None:
     warnings.warn("Couldn't find torch installed, so this will try to install it. "
                   "If the installation fails we recommend to first install it.")
+    if TORCH_VERSION is not None and IGNORE_TORCH_VER:
+        missing_modules.append(f'torch>={TORCH_MIN_VER},<={TORCH_MAX_VER}')
+        warnings.warn(f'Kaolin is compatible with PyTorch >={TORCH_MIN_VER}, <={TORCH_MAX_VER}, '
+                      f'but requested installation of version {TORCH_VERSION} instead. '
+                      'This will try to install torch in the requested version. '
+                      'If the installation fails we recommend to first install it.')
+    elif 
     if IGNORE_TORCH_VER:
         missing_modules.append('torch')
     else:
